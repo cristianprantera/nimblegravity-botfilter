@@ -79,6 +79,15 @@ export default function App() {
       return;
     }
 
+    // Este campo lo devuelve el Step 2 y el backend lo está validando
+    if (!candidate?.applicationId) {
+      patchSubmitState(jobId, {
+        error:
+          "Falta applicationId en el candidato. Volvé a apretar 'Buscar' (Step 2) y probá de nuevo.",
+      });
+      return;
+    }
+
     const repoUrl = (repoUrlByJobId[jobId] || "").trim();
     if (!repoUrl) {
       patchSubmitState(jobId, { error: "Ingresá la URL del repo." });
@@ -88,11 +97,12 @@ export default function App() {
     try {
       patchSubmitState(jobId, { loading: true });
 
-      // Step 5 body EXACTO
+      // Step 5 body (con applicationId agregado para evitar Invalid body)
       const body = {
-        uuid: candidate.uuid,
-        jobId: jobId,
-        candidateId: candidate.candidateId,
+        uuid: String(candidate.uuid),
+        jobId: String(jobId),
+        candidateId: String(candidate.candidateId),
+        applicationId: String(candidate.applicationId),
         repoUrl: repoUrl,
       };
 
@@ -104,7 +114,7 @@ export default function App() {
         patchSubmitState(jobId, { success: "✅ Enviado correctamente" });
       }
 
-      console.log("Apply response:", res);
+      console.log("Apply response:", res, "Body sent:", body);
     } catch (e) {
       patchSubmitState(jobId, { error: e.message || "Error enviando postulación" });
     } finally {
@@ -173,6 +183,9 @@ export default function App() {
             </div>
             <div>
               <b>candidateId:</b> {candidate.candidateId}
+            </div>
+            <div>
+              <b>applicationId:</b> {candidate.applicationId}
             </div>
           </div>
         )}
